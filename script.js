@@ -61,8 +61,26 @@ $(document).ready(function () {
                 })
                     .then(function (response) {
                         console.log(uvIndexURL);
-                        console.log(response);
-                        $("#uv-index").text("UV Index: " + response.value);
+                        console.log(typeof response.value);
+                        $("#uv-index").text(response.value);
+
+                        // Set uv background color
+                        if (response.value > 2 && response.value < 8) {
+                            $("#uv-index").addClass("bg-warning");
+                            $("#uv-index").removeClass("bg-success");
+                            $("#uv-index").removeClass("bg-danger");
+
+                        }
+                        else if (response.value > 7) {
+                            $("#uv-index").addClass("bg-danger");
+                            $("#uv-index").removeClass("bg-success");
+                            $("#uv-index").removeClass("bg-warning");
+                        }
+                        else {
+                            $("#uv-index").addClass("bg-succsess");
+                            $("#uv-index").removeClass("bg-warning");
+                            $("#uv-index").removeClass("bg-danger");
+                        }
 
                     })
                     .catch(function (error) {
