@@ -1,47 +1,80 @@
 $(document).ready(function () {
     // Selectors
-    var cityH2 = $(".card-title");
+    var ul = $(".list-group");
+    var cardBody = $(".card-body");
 
 
-    // Variables for ajax call
-    var APIKey = "7e9660df6b46d307a4673d7d7829d2f1";
-    var citySearch = "Austin";
-    var queryURL = "https://api.openweathermap.org/data/2.5/weather?" +
-        "q=" + citySearch + "&units=imperial&appid=" + APIKey;
+    // Search button click event
+    $(".btn").on("click", function (event) {
+        event.preventDefault();
+        // Get user search info
+        var target = $(this).attr("data-target");
+        console.log(target);
+        var citySearch = $("#" + target).val();
 
-    // Ajax call to openweather API
-    $.ajax({
-        url: queryURL,
-        method: "GET"
+
+        // Variables for ajax call
+        var APIKey = "7e9660df6b46d307a4673d7d7829d2f1";
+        var currentWeatherURL = "https://api.openweathermap.org/data/2.5/weather?" +
+            "q=" + citySearch + "&units=imperial&appid=" + APIKey;
+
+
+        // First Ajax call to populate main card
+        $.ajax({
+            url: currentWeatherURL,
+            method: "GET"
+        })
+            .then(function (response) {
+                console.log(response);
+
+                ////Variables from response
+                var lattitude = response.coord.lat;
+                var longitude = response.coord.lon;
+                var uvIndexURL = "http://api.openweathermap.org/data/2.5/uvi?lat=" + lattitude + "&lon=" + longitude + "&appid=" + APIKey;
+
+
+                // Foramted date from search
+                var searchDate = new Date(response.dt * 1000);
+                formatedDate = searchDate.toLocaleString("en-US", { month: "long", day: "numeric", year: "numeric" });
+
+
+                // Create icon element from search
+                var iconCode = response.weather[0].icon;
+                iconUrl = "http://openweathermap.org/img/wn/" + iconCode + "@2x.png";
+                console.log(iconCode);
+
+
+                //Append html to card body
+                cardBody.empty();
+                cardBody.append(/*html*/`<h2 class="card-title">${response.name} ${formatedDate} <img src="${iconUrl}"></h2>
+                        <p class="card-text" id="temp">Temperature: ${response.main.temp} &#8457;</p>
+                        <p class="card-text" id="humidity">Humidity: ${response.main.humidity}%</p>
+                        <p class="card-text" id="wind">Wind Speed: ${response.wind.speed}MPH</p>
+                        <p class="card-text">Uv Index: <span class="badge bg-success" id="uv-index">0/10</span></p>
+                        `);
+
+
+                //Second Ajax call for UV Index
+                $.ajax({
+                    url: uvIndexURL,
+                    method: "GET"
+                })
+                    .then(function (response) {
+                        console.log(uvIndexURL);
+                        console.log(response);
+                        $("#uv-index").text("UV Index: " + response.value);
+
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    })
+
+
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+
     })
-        // We store all of the retrieved data inside of an object called "response"
-        .then(function (response) {
-
-            // Log the queryURL
-            console.log(queryURL);
-
-            // Log the resulting object
-            console.log(response);
-
-
-
-            cityH2.text(citySearch);
-            // Transfer content to HTML
-            // $(".city").html("<h1>" + response.name + " Weather Details</h1>");
-            // $(".wind").text("Wind Speed: " + response.wind.speed);
-            // $(".humidity").text("Humidity: " + response.main.humidity);
-
-            // // Convert the temp to fahrenheit
-            // var tempF = (response.main.temp - 273.15) * 1.80 + 32;
-
-            // // add temp content to html
-            // $(".temp").text("Temperature (K) " + response.main.temp);
-            // $(".tempF").text("Temperature (F) " + tempF.toFixed(2));
-
-            // // Log the data in the console as well
-            // console.log("Wind Speed: " + response.wind.speed);
-            // console.log("Humidity: " + response.main.humidity);
-            // console.log("Temperature (F): " + tempF);
-        });
 
 })
