@@ -14,7 +14,7 @@ $(document).ready(function () {
 
 
         // Variables for ajax call
-        var APIKey = "7e9660df6b46d307a4673d7d7829d2f1";
+        var APIKey = "e377fead6d29a56f30988b040bb85f93";
         var currentWeatherURL = "https://api.openweathermap.org/data/2.5/weather?" +
             "q=" + citySearch + "&units=imperial&appid=" + APIKey;
 
@@ -31,17 +31,16 @@ $(document).ready(function () {
                 var lattitude = response.coord.lat;
                 var longitude = response.coord.lon;
                 var uvIndexURL = "http://api.openweathermap.org/data/2.5/uvi?lat=" + lattitude + "&lon=" + longitude + "&appid=" + APIKey;
-
+                var fiveDayURL = "https://api.openweathermap.org/data/2.5/forecast?" + "q=" + citySearch + "&units=imperial&appid=" + APIKey;
 
                 // Foramted date from search
                 var searchDate = new Date(response.dt * 1000);
-                formatedDate = searchDate.toLocaleString("en-US", { month: "long", day: "numeric", year: "numeric" });
+                var formatedDate = searchDate.toLocaleString("en-US", { month: "long", day: "numeric", year: "numeric" });
 
 
                 // Create icon element from search
                 var iconCode = response.weather[0].icon;
                 iconUrl = "http://openweathermap.org/img/wn/" + iconCode + "@2x.png";
-                console.log(iconCode);
 
 
                 //Append html to card body
@@ -50,7 +49,7 @@ $(document).ready(function () {
                         <p class="card-text" id="temp">Temperature: ${response.main.temp} &#8457;</p>
                         <p class="card-text" id="humidity">Humidity: ${response.main.humidity}%</p>
                         <p class="card-text" id="wind">Wind Speed: ${response.wind.speed}MPH</p>
-                        <p class="card-text">Uv Index: <span class="badge bg-success" id="uv-index">0/10</span></p>
+                        <p class="card-text">UV Index: <span class="badge bg-success" id="uv-index">0/10</span></p>
                         `);
 
 
@@ -60,8 +59,6 @@ $(document).ready(function () {
                     method: "GET"
                 })
                     .then(function (response) {
-                        console.log(uvIndexURL);
-                        console.log(typeof response.value);
                         $("#uv-index").text(response.value);
 
                         // Set uv background color
@@ -80,6 +77,48 @@ $(document).ready(function () {
                             $("#uv-index").addClass("bg-succsess");
                             $("#uv-index").removeClass("bg-warning");
                             $("#uv-index").removeClass("bg-danger");
+                        }
+
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    })
+
+                // Ajax call for 5 day forecast
+                $.ajax({
+                    url: fiveDayURL,
+                    method: "GET"
+                })
+                    .then(function (response) {
+                        console.log(fiveDayURL);
+                        var forecast = response.list;
+
+                        for (i = 0; i < 5; i++) {
+                            console.dir(forecast[i]);
+                            var searchDate = new Date(forecast[i].dt * 1000);
+                            var formatedDate = searchDate.toLocaleString("en-US", { month: "long", day: "numeric", year: "numeric" });
+                            console.log(formatedDate)
+                            var iconCode = forecast[i].weather[0].icon;
+                            var iconUrl = "http://openweathermap.org/img/wn/" + iconCode + "@2x.png";
+                            console.log("Icon: " + iconCode);
+                            console.log(iconUrl);
+                            var temp = forecast[i].main.temp;
+                            console.log("Tem: " + temp);
+                            var humidity = forecast[i].main.humidity;
+                            console.log("Humidity: " + humidity);
+
+                            $("#forecast-cards").append(/*html*/`<div class="col">
+                                                                    <div class="card text-white bg-primary mb-3" style="max-width: 18rem;">
+                                                                        <div class="card-header">${formatedDate}</div>
+                                                                        <div class="card-body">
+                                                                            <h5 class="card-title"><img src="${iconUrl}"></h5>
+                                                                            <p class="card-text">Temperature: ${temp} &#8457;</p>
+                                                                            <p class="card-text">Humidity: ${humidity}%</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>`)
+
+
                         }
 
                     })
